@@ -1,0 +1,15 @@
+date,variant,visitors,conversions
+2026-03-02,control,4980,249
+2026-03-02,new-headline,5020,281
+2026-03-03,control,5100,255
+2026-03-03,new-headline,5050,283
+2026-03-04,control,4950,252
+2026-03-04,new-headline,4990,274
+2026-03-05,control,5010,251
+2026-03-05,new-headline,5030,286
+2026-03-06,control,5060,258
+2026-03-06,new-headline,4970,277
+2026-03-07,control,4900,243
+2026-03-07,new-headline,4960,280
+2026-03-08,control,4990,250
+2026-03-08,new-headline,5000,279
