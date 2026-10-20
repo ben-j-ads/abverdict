@@ -17,7 +17,7 @@ landing-page builder and no data-science support.
 |---|---|
 | `plan` | Sample size per arm and test duration for conversion or continuous metrics; multi-variant Bonferroni alpha; rounds duration to full weeks |
 | `test` | Conversion counts (`--arm name=conv/n`, CSV) and raw values (CSV, Welch t-test) |
-| Guards | SRM check; planned-sample gate; peeking correction (Pocock, else Bonferroni); Holm for multiple variants; <7 day, low-conversion and heavy-tail warnings |
+| Guards | SRM check; planned-sample gate; peeking handling (calls held until the planned sample; Pocock, else Bonferroni, when no plan is given); Holm for multiple variants; <7 day, low-conversion and heavy-tail warnings |
 | Output | Plain-English text and `--json` |
 | Quality | stdlib `unittest`, reference-value tests for the math, CLI tests, CI workflow |
 
