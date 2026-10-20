@@ -55,6 +55,10 @@ def build_parser() -> argparse.ArgumentParser:
     ts.add_argument("--absolute", action="store_true", help="treat a conversion --mde as absolute percentage points")
     ts.add_argument("--split", help="intended traffic split, e.g. 50/50 or 80/10/10 (default: equal)")
     ts.add_argument("--json", action="store_true")
+
+    sv = sub.add_parser("serve", help="open the visual interface in your browser (runs locally)")
+    sv.add_argument("--port", type=int, default=8765)
+    sv.add_argument("--no-open", action="store_true", help="don't open a browser tab")
     return p
 
 
@@ -103,6 +107,10 @@ def _cmd_test(a) -> int:
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "serve":
+            from .server import serve
+            serve(args.port, open_browser=not args.no_open)
+            return 0
         return _cmd_plan(args) if args.command == "plan" else _cmd_test(args)
     except (ValueError, OSError) as e:
         print(f"abverdict: error: {e}", file=sys.stderr)
