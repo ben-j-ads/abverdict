@@ -88,4 +88,8 @@ See [docs/PLAN.md](docs/PLAN.md) for the roadmap and [docs/RESEARCH.md](docs/RES
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
 
-MIT licensed.
+## License
+
+Code is MIT licensed ([LICENSE](LICENSE)). The bundled fonts (Bricolage Grotesque, Archivo) are
+SIL OFL 1.1, with licenses in `src/abverdict/web/fonts/`. The ben.j.ads wordmark, footnote mark and
+avatar in `src/abverdict/web/img/` are Ben Johnston's brand assets and are not covered by the MIT license.
