@@ -1,7 +1,9 @@
 """Input parsing: `--arm name=conv/n` strings and CSV exports."""
 from __future__ import annotations
 
+import contextlib
 import csv
+import io
 import math
 from collections import OrderedDict
 from typing import Optional
@@ -24,6 +26,11 @@ def parse_arm(text: str) -> Arm:
         raise ValueError(f"can't parse arm '{text}'. Expected name=conversions/visitors, e.g. B=560/10000") from None
 
 
+def _open(src):
+    """A path to open, or an already-open text file object."""
+    return contextlib.nullcontext(src) if hasattr(src, "read") else open(src, newline="")
+
+
 def _column(header: list, options: tuple, what: str) -> str:
     lowered = {h.strip().lower(): h for h in header}
     for o in options:
@@ -44,7 +51,7 @@ def _order(groups: "OrderedDict", control: Optional[str]) -> list:
 
 def read_counts_csv(path: str, control: Optional[str] = None):
     """Aggregate rows (e.g. one per day) by variant. Returns (arms, days_or_None)."""
-    with open(path, newline="") as f:
+    with _open(path) as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames or []
         name_c = _column(header, _NAME, "variant")
@@ -77,7 +84,7 @@ def _moments(values: list):
 
 def read_values_csv(path: str, control: Optional[str] = None):
     """One row per user/order with a numeric value. Returns (arms, days_or_None)."""
-    with open(path, newline="") as f:
+    with _open(path) as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames or []
         name_c = _column(header, _NAME, "variant")
@@ -93,3 +100,14 @@ def read_values_csv(path: str, control: Optional[str] = None):
         mean, sd, skew = _moments(groups[name])
         arms.append(Arm(name, len(groups[name]), mean=mean, sd=sd, skew=skew))
     return arms, (len(dates) or None)
+
+
+def read_csv_text(text: str, control: Optional[str] = None):
+    """Paste-friendly: counts CSV (variant,visitors,conversions) or values CSV (variant,value)."""
+    header = next(csv.reader(io.StringIO(text)), [])
+    lowered = {h.strip().lower() for h in header}
+    if lowered & set(_CONVERSIONS):
+        return read_counts_csv(io.StringIO(text), control)
+    if lowered & set(_VALUE):
+        return read_values_csv(io.StringIO(text), control)
+    raise ValueError("CSV needs a header row: variant,visitors,conversions (counts) or variant,value (one row per order)")
