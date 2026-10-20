@@ -1,0 +1,38 @@
+/* ben.j.ads tokens, copied from design-system/benjads/tokens/tokens.css. Do not edit by hand. */
+:root {
+  --paper: #eef0e4;
+  --paper-raised: #f7f8f1;
+  --ink: #272818;
+  --ink-muted: #5c5e48;
+  --rule: #c9cdb5;
+  --lime: #dcf04a;
+  --on-lime: #272818;
+  --olive: #272818;
+  --moss: #56620a;
+  --redact: var(--ink);
+  --focus: #272818;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 48px;
+  --space-6: 96px;
+  --radius-none: 0;
+  --radius-hairline: 2px;
+  --radius-round: 50%;
+  --lean: -9deg;
+  --font-display: "Bricolage Grotesque Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-text: Archivo, "Helvetica Neue", Arial, sans-serif;
+}
+[data-theme="dark"] {
+  --paper: #17180d;
+  --paper-raised: #212216;
+  --ink: #eef0e4;
+  --ink-muted: #a6a98f;
+  --rule: #3d3f2e;
+  --moss: #b9cc3a;
+  --focus: #dcf04a;
+}
+@font-face { font-family: "Bricolage Grotesque Condensed"; src: url("fonts/BricolageGrotesque-ExtraBoldCondensed.ttf") format("truetype"); font-weight: 800; font-style: normal; }
+@font-face { font-family: "Archivo"; src: url("fonts/Archivo-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+@font-face { font-family: "Archivo"; src: url("fonts/Archivo-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
