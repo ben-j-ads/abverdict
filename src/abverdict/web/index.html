@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>abverdict</title>
+<meta name="description" content="Did your A/B test actually win? A guarded, plain-English verdict. Runs on your machine.">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css">
+<script>
+  try { var t = localStorage.getItem("abverdict-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">skip to the tool</a>
+
+<header class="top">
+  <a class="wordmark" href="./" aria-label="ben.j.ads">
+    <img class="light-only" src="img/wordmark-light.svg" alt="ben.j.ads">
+    <img class="dark-only" src="img/wordmark-dark.svg" alt="ben.j.ads">
+  </a>
+  <nav class="tabs" role="tablist" aria-label="tool">
+    <button role="tab" id="tab-test" aria-controls="panel-test" aria-selected="true">test</button>
+    <button role="tab" id="tab-plan" aria-controls="panel-plan" aria-selected="false">plan</button>
+  </nav>
+  <button class="theme label" id="theme" type="button" aria-pressed="false">night shift</button>
+</header>
+
+<main id="main">
+  <section class="hero grid">
+    <p class="label">free tool / marketing science</p>
+    <h1>did it win?</h1>
+    <p class="lead">Put in your numbers. I will tell you if the test won, and if I don't trust the test, I will say why.</p>
+  </section>
+
+  <!-- TEST -->
+  <section id="panel-test" role="tabpanel" aria-labelledby="tab-test">
+    <form id="test-form" class="panel" novalidate>
+      <div class="panel-head">
+        <h2>the numbers</h2>
+        <div class="examples">
+          <button type="button" class="link" data-example="early">example: looks like a win</button>
+          <button type="button" class="link" data-example="clear">example: clear winner</button>
+        </div>
+      </div>
+
+      <div id="mode-counts">
+        <div class="rows-head label" aria-hidden="true">
+          <span>variant</span><span>conversions</span><span>visitors</span><span></span>
+        </div>
+        <div id="rows"></div>
+        <button type="button" class="link add" id="add-row">+ variant</button>
+        <p class="hint">The first row is your control.</p>
+      </div>
+
+      <details class="csv">
+        <summary>or paste a csv</summary>
+        <label for="csv" class="hint">Header row <code>variant,visitors,conversions</code> (daily rows are summed) or <code>variant,value</code> for revenue. Add a <code>date</code> column and I will count the days.</label>
+        <textarea id="csv" rows="6" spellcheck="false" placeholder="variant,visitors,conversions&#10;control,5000,250&#10;new,5000,281"></textarea>
+        <label class="inline" for="control">control name <input id="control" type="text" placeholder="first variant in the file"></label>
+      </details>
+
+      <details class="discipline" open>
+        <summary>the discipline</summary>
+        <p class="hint">This is the part calculators skip. Fill in what you committed to before the test started.</p>
+        <div class="fields">
+          <label>planned visitors per arm<input id="planned_n" type="number" min="1" inputmode="numeric" placeholder="from the plan tab"></label>
+          <label>days it ran<input id="days" type="number" min="1" inputmode="numeric"></label>
+          <label>times you checked, including now<input id="looks" type="number" min="1" value="1" inputmode="numeric"></label>
+          <label>smallest lift worth acting on (relative, %)<input id="mde" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 5"></label>
+          <label>intended traffic split<input id="split" type="text" placeholder="50/50"></label>
+          <label>alpha<input id="alpha" type="number" min="0.001" max="0.2" step="0.001" value="0.05"></label>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button class="primary" type="submit">get the verdict →</button>
+        <p id="form-error" class="error" role="alert" hidden></p>
+      </div>
+    </form>
+
+    <section id="result" class="result" aria-live="polite" hidden></section>
+  </section>
+
+  <!-- PLAN -->
+  <section id="panel-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
+    <form id="plan-form" class="panel" novalidate>
+      <div class="panel-head"><h2>before you launch</h2></div>
+      <p class="hint">Decide how big the test has to be before you look at a single result.</p>
+      <fieldset class="metric">
+        <legend class="label">what are you measuring</legend>
+        <label><input type="radio" name="metric" value="conversion" checked> a rate (clicks, signups, orders)</label>
+        <label><input type="radio" name="metric" value="continuous"> an amount (revenue per visitor)</label>
+      </fieldset>
+      <div class="fields">
+        <label data-for="conversion">current rate (%)<input id="p-baseline" type="number" min="0" max="100" step="any" value="5" inputmode="decimal"></label>
+        <label data-for="continuous" hidden>standard deviation<input id="p-sd" type="number" min="0" step="any" inputmode="decimal"></label>
+        <label><span id="p-mde-label">smallest lift worth detecting (relative, %)</span><input id="p-mde" type="number" min="0" step="any" value="10" inputmode="decimal"></label>
+        <label>variants including control<input id="p-arms" type="number" min="2" value="2" inputmode="numeric"></label>
+        <label>visitors per day, all variants<input id="p-traffic" type="number" min="1" inputmode="numeric" placeholder="optional"></label>
+        <label>power (%)<input id="p-power" type="number" min="50" max="99" value="80" inputmode="numeric"></label>
+      </div>
+      <div class="actions">
+        <button class="primary" type="submit">how big a test? →</button>
+        <p id="plan-error" class="error" role="alert" hidden></p>
+      </div>
+    </form>
+    <section id="plan-result" class="result" aria-live="polite" hidden></section>
+  </section>
+</main>
+
+<footer class="foot">
+  <img class="light-only" src="img/footnote-light.svg" alt="ben.j.ads">
+  <img class="dark-only" src="img/footnote-dark.svg" alt="ben.j.ads">
+  <p class="caption"><span class="tag">1</span> for people who spend money. Runs on your machine. Nothing is sent anywhere.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

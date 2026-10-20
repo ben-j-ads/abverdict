@@ -57,6 +57,20 @@ abverdict test ... --json                              # machine-readable
 
 Verdicts: `WINNER`, `LOSER`, `KEEP RUNNING`, `NO MEANINGFUL DIFFERENCE`, `INCONCLUSIVE`, `INVALID`.
 
+## Visual interface
+
+```bash
+abverdict serve        # opens http://localhost:8765 in your browser
+```
+
+Two tabs: **plan** (how big a test do I need?) and **test** (type in counts or paste a CSV). The verdict
+comes back as one big word, an interval chart per variant, and a pass / fail list of every guard.
+Night shift (dark) is a toggle. It runs entirely on your machine: the server binds to localhost only,
+rejects other `Host` headers, and nothing is sent anywhere.
+
+The UI uses the ben.j.ads design system (paper ground, lime as a highlighter only, condensed lowercase
+display, square corners). Bricolage Grotesque and Archivo are SIL OFL 1.1 licensed.
+
 ## Honest limitations (v0.1)
 
 - Higher is assumed better. Two-sided tests only.
