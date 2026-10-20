@@ -69,11 +69,28 @@ class Verdicts(unittest.TestCase):
     def test_peeking_tightens_threshold(self):
         # p ~ 0.033: significant for one look, not after three looks (Pocock 0.0221).
         arms = [conv("A", 1000, 20000), conv("B", 1095, 20000)]
-        once = verdict.analyze(arms, planned_n=20000, looks=1)
-        thrice = verdict.analyze(arms, planned_n=20000, looks=3)
+        once = verdict.analyze(arms, looks=1)
+        thrice = verdict.analyze(arms, looks=3)
         self.assertTrue(0.0221 < once.comparisons[0].p_value < 0.05)
         self.assertEqual(once.overall, verdict.WINNER)
         self.assertEqual(thrice.overall, verdict.INCONCLUSIVE)
+
+    def test_peeking_is_free_when_calls_wait_for_the_planned_sample(self):
+        arms = [conv("A", 1000, 20000), conv("B", 1095, 20000)]
+        r = verdict.analyze(arms, planned_n=20000, looks=5)
+        self.assertEqual(r.overall, verdict.WINNER)
+        self.assertEqual(r.alpha_effective, 0.05)
+        self.assertTrue(any("fine here" in w for w in r.warnings))
+
+    def test_borderline_when_p_and_interval_disagree_about_zero(self):
+        # Pooled-variance p and unpooled Wald interval can disagree right at the boundary (found by search).
+        cases = [(7392, 37467, 697, 3266),   # p < .05 but interval touches zero
+                 (12210, 27941, 555, 1397)]  # p >= .05 but interval excludes zero
+        for n1, n2, c1, c2 in cases:
+            r = verdict.analyze([conv("A", c1, n1), conv("B", c2, n2)], planned_n=min(n1, n2), split=[n1, n2])
+            cmp_ = r.comparisons[0]
+            self.assertEqual(cmp_.verdict, verdict.INCONCLUSIVE)
+            self.assertTrue(any("Borderline" in x for x in cmp_.reasons))
 
     def test_multiple_variants_are_corrected(self):
         arms = [conv("A", 1000, 20000), conv("B", 1095, 20000), conv("C", 1000, 20000)]
@@ -103,7 +120,8 @@ class Verdicts(unittest.TestCase):
             verdict.analyze([conv("A", 1, 10), conv("A", 1, 10)])
 
     def test_false_positive_rate_with_correction_is_controlled(self):
-        # A/A tests with 4 looks at alpha .05: Pocock should keep false positives near 5%.
+        # A/A tests, stopping at the first significant look of 4, no planned sample:
+        # Pocock keeps the two-sided false-positive rate near 5% (WINNER is the upper half, ~2.5%).
         rng = random.Random(7)
         trials, hits = 400, 0
         for _ in range(trials):
@@ -113,11 +131,11 @@ class Verdicts(unittest.TestCase):
                 ca += sum(rng.random() < 0.1 for _ in range(500))
                 cb += sum(rng.random() < 0.1 for _ in range(500))
                 n = 500 * look
-                r = verdict.analyze([conv("A", ca, n), conv("B", cb, n)], looks=4, planned_n=n)
+                r = verdict.analyze([conv("A", ca, n), conv("B", cb, n)], looks=4)
                 if r.overall in (verdict.WINNER, verdict.LOSER):
                     called = True
             hits += called
-        self.assertLess(hits / trials, 0.08)
+        self.assertLess(hits / trials, 0.05)
 
 
 if __name__ == "__main__":

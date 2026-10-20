@@ -154,7 +154,10 @@ def analyze(
 
     control, variants = arms[0], list(arms[1:])
     m = len(variants)
-    alpha_eff = effective_alpha(alpha, looks)
+    # With a planned sample the engine refuses to call anything early, so extra looks cannot
+    # inflate false positives and no penalty applies. Without one, early stopping can't be ruled
+    # out, so the threshold is tightened.
+    alpha_eff = alpha if planned_n is not None else effective_alpha(alpha, looks)
     ci_level = 1 - alpha_eff / m
     srm_p = srm_pvalue([a.n for a in arms], split)
     invalid = srm_p < SRM_THRESHOLD
@@ -170,7 +173,8 @@ def analyze(
         base = control.rate if is_conv else control.mean
         rel = diff / base if base else None
         rel_ci = (ci[0] / base, ci[1] / base) if base else None
-        significant = pa < alpha_eff and (ci[0] > 0 or ci[1] < 0)
+        ci_excludes_zero = ci[0] > 0 or ci[1] < 0
+        significant = pa < alpha_eff and ci_excludes_zero
         if invalid:
             verdict = INVALID
             reasons.append(f"Traffic split is off (SRM p={fmt_p(srm_p)}); the test is broken, so no result can be trusted.")
@@ -189,7 +193,11 @@ def analyze(
                 reasons.append("The interval rules out any effect as large as the minimum worth acting on.")
             else:
                 verdict = INCONCLUSIVE
-                reasons.append(f"Adjusted p={pa:.3g}; the data can't distinguish this from no effect, and can't rule out a meaningful one.")
+                if (pa < alpha_eff) != ci_excludes_zero:
+                    # p-value (pooled variance) and interval (unpooled) can disagree right at the boundary.
+                    reasons.append(f"Borderline: adjusted p={pa:.3g} and the interval disagree about zero. Treat it as unproven.")
+                else:
+                    reasons.append(f"Adjusted p={pa:.3g}; the data can't distinguish this from no effect, and can't rule out a meaningful one.")
                 reasons.append("Not significant is not the same as no effect.")
         comparisons.append(Comparison(v.name, control.name, diff, ci, rel, rel_ci, p, pa, verdict, reasons))
 
@@ -205,8 +213,10 @@ def _warnings(arms, is_conv, planned_n, days, looks, alpha, alpha_eff, m):
         out.append("No planned sample size given, so stopping early can't be detected. Run `abverdict plan` before your next test and pass --planned-n.")
     if days is not None and days < MIN_DAYS:
         out.append(f"Test ran {days} day(s). Run at least {MIN_DAYS} to cover a full weekly cycle.")
-    if looks > 1:
-        out.append(f"You looked {looks} times, so the threshold was tightened from {alpha} to {alpha_eff:.4g} per look to keep false positives near {alpha:.0%}.")
+    if looks > 1 and planned_n is not None:
+        out.append(f"You looked {looks} times. That's fine here: calls are held until the planned sample is reached, so peeking can't inflate false positives.")
+    elif looks > 1:
+        out.append(f"You looked {looks} times and gave no planned sample, so the threshold was tightened from {alpha} to {alpha_eff:.4g} per look to keep false positives near {alpha:.0%}.")
     if m > 1:
         out.append(f"{m} variants compared with control: p-values are Holm-adjusted and intervals widened (Bonferroni).")
     if is_conv:

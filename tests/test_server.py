@@ -91,6 +91,7 @@ class ServerTests(unittest.TestCase):
         req = urllib.request.Request(self.base + "/api/test", b"x=1", {"Content-Type": "text/plain"})
         with self.assertRaises(urllib.error.HTTPError) as cm:
             urllib.request.urlopen(req)
+        cm.exception.close()
         self.assertEqual(cm.exception.code, 415)
 
 
