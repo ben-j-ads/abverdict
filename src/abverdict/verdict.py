@@ -67,6 +67,7 @@ class Report:
     overall: str
     headline: str
     warnings: list = field(default_factory=list)
+    mde: Optional[float] = None
 
 
 def fmt_p(p: float) -> str:
@@ -195,7 +196,7 @@ def analyze(
     warnings = _warnings(arms, is_conv, planned_n, days, looks, alpha, alpha_eff, m)
     overall, headline = _overall(comparisons, srm_p)
     return Report("conversion" if is_conv else "continuous", list(arms), comparisons, alpha, alpha_eff,
-                  ci_level, looks, planned_n, days, srm_p, overall, headline, warnings)
+                  ci_level, looks, planned_n, days, srm_p, overall, headline, warnings, mde)
 
 
 def _warnings(arms, is_conv, planned_n, days, looks, alpha, alpha_eff, m):

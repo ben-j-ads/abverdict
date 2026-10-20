@@ -47,8 +47,37 @@ def render_plan(p: Plan, baseline_text: str) -> str:
     return "\n".join(lines)
 
 
+def build_checks(r: Report) -> list:
+    """The guards, as pass / fail / note rows (used by the web UI and --json)."""
+    from .verdict import EARLY_FRACTION, MIN_DAYS, SRM_THRESHOLD
+    checks = []
+    bad = r.srm_p < SRM_THRESHOLD
+    checks.append({"name": "traffic split", "status": "fail" if bad else "pass",
+                   "detail": f"SRM p={fmt_p(r.srm_p)}. " + ("The split does not match the plan, so the test is broken." if bad else "The split matches the plan.")})
+    if r.planned_n is None:
+        checks.append({"name": "planned sample", "status": "note", "detail": "No planned sample given, so stopping early can't be detected."})
+    else:
+        have = min(a.n for a in r.arms)
+        ok = have >= EARLY_FRACTION * r.planned_n
+        checks.append({"name": "planned sample", "status": "pass" if ok else "fail",
+                       "detail": f"{have:,} of {r.planned_n:,} per arm ({100 * have / r.planned_n:.0f}%)."})
+    if r.days is None:
+        checks.append({"name": "run length", "status": "note", "detail": "Days not given."})
+    else:
+        checks.append({"name": "run length", "status": "pass" if r.days >= MIN_DAYS else "fail",
+                       "detail": f"{r.days} day(s). Aim for at least {MIN_DAYS} to cover a weekly cycle."})
+    checks.append({"name": "peeking", "status": "pass" if r.looks == 1 else "note",
+                   "detail": "One look." if r.looks == 1 else f"{r.looks} looks, threshold tightened from {r.alpha} to {r.alpha_effective:.4g}."})
+    m = len(r.comparisons)
+    checks.append({"name": "variants", "status": "pass" if m == 1 else "note",
+                   "detail": "One comparison." if m == 1 else f"{m} comparisons, p-values Holm-adjusted."})
+    return checks
+
+
 def report_to_dict(r: Report) -> dict:
-    return asdict(r)
+    d = asdict(r)
+    d["checks"] = build_checks(r)
+    return d
 
 
 def plan_to_dict(p: Plan) -> dict:
