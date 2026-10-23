@@ -8,7 +8,7 @@ checks the mistakes that quietly invalidate marketing tests:
 | Guard | What it catches |
 |---|---|
 | **Planned-sample gate** | Calling a test early because it "looks significant" |
-| **Peeking correction** | Checking results repeatedly (Pocock thresholds, Bonferroni fallback) |
+| **Peeking** | Looking is free if you wait for your planned sample. With no plan, thresholds are tightened (Pocock, Bonferroni fallback) |
 | **Sample ratio mismatch** | Broken traffic splits that make every p-value meaningless |
 | **Multiple variants** | A/B/C/D tests with Holm-adjusted p-values and widened intervals |
 | **Right test for the metric** | Two-proportion z-test for conversions, Welch t-test for revenue-like values |
@@ -78,7 +78,7 @@ display, square corners). Bricolage Grotesque and Archivo are SIL OFL 1.1 licens
 - Revenue uses Welch's t-test on means. Heavy tails are flagged but not bootstrapped yet.
 - Multi-variant intervals are Bonferroni-wide while p-values use Holm; this is conservative.
 - Pocock thresholds are tabulated for alpha 0.05 and up to 10 looks, otherwise Bonferroni.
-- Statistical review by an independent statistician is a to-do before 1.0.
+- Not reviewed by a human statistician. Checked against scipy and statsmodels and by simulation instead: see [docs/VALIDATION.md](docs/VALIDATION.md).
 
 See [docs/PLAN.md](docs/PLAN.md) for the roadmap and [docs/RESEARCH.md](docs/RESEARCH.md) for why this exists.
 

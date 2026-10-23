@@ -66,8 +66,13 @@ def build_checks(r: Report) -> list:
     else:
         checks.append({"name": "run length", "status": "pass" if r.days >= MIN_DAYS else "fail",
                        "detail": f"{r.days} day(s). Aim for at least {MIN_DAYS} to cover a weekly cycle."})
-    checks.append({"name": "peeking", "status": "pass" if r.looks == 1 else "note",
-                   "detail": "One look." if r.looks == 1 else f"{r.looks} looks, threshold tightened from {r.alpha} to {r.alpha_effective:.4g}."})
+    if r.looks == 1:
+        peek = ("pass", "One look.")
+    elif r.planned_n is not None:
+        peek = ("pass", f"{r.looks} looks, but calls were held until the planned sample, so no penalty.")
+    else:
+        peek = ("note", f"{r.looks} looks with no planned sample, so the threshold was tightened from {r.alpha} to {r.alpha_effective:.4g}.")
+    checks.append({"name": "peeking", "status": peek[0], "detail": peek[1]})
     m = len(r.comparisons)
     checks.append({"name": "variants", "status": "pass" if m == 1 else "note",
                    "detail": "One comparison." if m == 1 else f"{m} comparisons, p-values Holm-adjusted."})
